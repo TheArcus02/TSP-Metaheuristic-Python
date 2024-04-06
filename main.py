@@ -1,8 +1,8 @@
 from greedy import greedy_tsp
-from utils import (plot_tsp_solution, calculate_lower_bound, generate_tsp_instance_from_file)
+from utils import (calculate_lower_bound, generate_tsp_instance_from_file, plot_tsp_solution)
 
 if __name__ == '__main__':
-    file_path = 'data/berlin52.txt'
+    file_path = 'data/tsp1000.txt'
     cities = generate_tsp_instance_from_file(file_path)
     # cities = generate_tsp_instance(9, 0, 10)
     lower_bound = calculate_lower_bound(cities)

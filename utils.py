@@ -1,3 +1,5 @@
+import random
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -20,10 +22,23 @@ def generate_tsp_instance_from_file(file_path):
 def generate_tsp_instance(num_cities, min_coord, max_coord):
     cities = []
     for _ in range(num_cities):
-        x_coordinate = np.random.uniform(min_coord, max_coord)
-        y_coordinate = np.random.uniform(min_coord, max_coord)
+        x_coordinate = random.randint(min_coord, max_coord)
+        y_coordinate = random.randint(min_coord, max_coord)
         cities.append((x_coordinate, y_coordinate))
     return cities
+
+
+def generate_file_for_instance(instance):
+    with open('data/instance_50.txt', 'w') as file:
+        file.write(f'{len(instance)}\n')
+        for i, city in enumerate(instance):
+            file.write(str(i + 1))
+            file.write(f' {city[0]} {city[1]}\n')
+
+
+# instance = generate_tsp_instance(50, 1, 1000)
+# print(instance)
+# generate_file_for_instance(instance)
 
 
 def plot_tsp_solution(points, tour):
@@ -43,8 +58,9 @@ def plot_tsp_solution(points, tour):
 
     # Plot tour
     for i in range(len(tour) - 1):
-        city1 = tour[i]
-        city2 = tour[i + 1]
+        city1 = tour[i] - 1
+        city2 = tour[i + 1] - 1
+
         plt.plot([points[city1][0], points[city2][0]], [points[city1][1], points[city2][1]], color='red')
 
     # Connect last city to the starting city
