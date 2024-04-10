@@ -1,9 +1,9 @@
 import random
 
 
-class Instance(object):
+class Instance:
     def __init__(self):
-        self.cities: list[tuple[float, float]] = []
+        self._cities: list[tuple[int, int]] = []
 
     def get_from_file(self, file_path: str) -> None:
         cities = []
@@ -13,12 +13,12 @@ class Instance(object):
                 if len(parts) < 3:
                     continue
                 city_number = int(parts[0])
-                x_coordinate = float(parts[1])
-                y_coordinate = float(parts[2])
+                x_coordinate = int(parts[1])
+                y_coordinate = int(parts[2])
                 cities.append((x_coordinate, y_coordinate))
         self.cities = cities
 
-    def generate_cities(self, num_cities: int, min_coord: int, max_coord: int) -> list[tuple[float, float]]:
+    def generate_cities(self, num_cities: int, min_coord: int, max_coord: int) -> list[tuple[int, int]]:
         cities = []
         for _ in range(num_cities):
             x_coordinate = random.randint(min_coord, max_coord)
@@ -28,14 +28,19 @@ class Instance(object):
         return cities
 
     def create_file(self, file_path: str) -> None:
-        with open(f'data/{file_path}', 'w') as file:
+        with open(file_path, 'w') as file:
             file.write(f'{len(self.cities)}\n')
             for i, city in enumerate(self.cities):
                 file.write(str(i + 1))
                 file.write(f' {city[0]} {city[1]}\n')
 
     def get_length(self) -> int:
-        return len(self.cities)
+        return len(self._cities)
 
-    def get_cities(self) -> list[tuple[float, float]]:
-        return self.cities
+    @property
+    def cities(self) -> list[tuple[int, int]]:
+        return self._cities
+
+    @cities.setter
+    def cities(self, cities: list[tuple[int]]):
+        self._cities = cities
