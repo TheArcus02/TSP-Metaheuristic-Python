@@ -7,21 +7,21 @@ def greedy_tsp(points):
     tour = []
 
     current_point = 0
-    tour.append(current_point + 1)
+    tour.append(current_point)
     remaining_points.remove(current_point)
 
     total_distance = 0
 
     while remaining_points:
         nearest_point = min(remaining_points, key=lambda x: calculate_distance(points[current_point], points[x]))
-        tour.append(nearest_point + 1)
+        tour.append(nearest_point)
         remaining_points.remove(nearest_point)
         total_distance += calculate_distance(points[current_point], points[nearest_point])
         current_point = nearest_point
 
     # Add return to the starting point
-    tour.append(1)
+    tour.append(0)
     # Add distance to return to the starting point
-    total_distance += calculate_distance(points[tour[-2] - 1], points[0])
+    total_distance += calculate_distance(points[tour[-2]], points[0])
 
     return tour, total_distance
