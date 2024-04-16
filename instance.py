@@ -1,9 +1,10 @@
 import random
+from typing import List, Tuple
 
 
 class Instance:
     def __init__(self):
-        self._cities: list[tuple[int, int]] = []
+        self._cities: List[Tuple[int, int]] = []
 
     def get_from_file(self, file_path: str) -> None:
         cities = []
@@ -18,7 +19,7 @@ class Instance:
                 cities.append((x_coordinate, y_coordinate))
         self.cities = cities
 
-    def generate_cities(self, num_cities: int, min_coord: int, max_coord: int) -> list[tuple[int, int]]:
+    def generate_cities(self, num_cities: int, min_coord: int, max_coord: int) -> List[Tuple[int, int]]:
         cities = []
         for _ in range(num_cities):
             x_coordinate = random.randint(min_coord, max_coord)
@@ -38,9 +39,9 @@ class Instance:
         return len(self._cities)
 
     @property
-    def cities(self) -> list[tuple[int, int]]:
+    def cities(self) -> List[Tuple[int, int]]:
         return self._cities
 
     @cities.setter
-    def cities(self, cities: list[tuple[int]]):
+    def cities(self, cities: List[Tuple[int]]):
         self._cities = cities
