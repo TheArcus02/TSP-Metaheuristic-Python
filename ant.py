@@ -57,8 +57,8 @@ class Ant:
         return probabilities
 
     def _calculate_desirability(self, pheromone: float, current_city: int, next_city: int) -> float:
-        return ((pheromone ** self.alpha) *
-                (calculate_distance(self.cities[current_city], self.cities[next_city]) ** self.beta))
+        distance = calculate_distance(self.cities[current_city], self.cities[next_city])
+        return (pheromone ** self.alpha) * (1.0 / distance) ** self.beta
 
     def calculate_tour_length(self) -> None:
         total_distance = 0

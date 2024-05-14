@@ -1,7 +1,10 @@
-from typing import List, Tuple
+import itertools
+import time
+from typing import List, Tuple, Dict
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 
 from aco import ACO
 from utils import calculate_distance
@@ -64,6 +67,39 @@ class TSP:
         self.distance = tour_len
 
         return tour, tour_len
+
+    def tune_aco_parameters(self, parameter_values: Dict[str, List], num_trials: int, log=False):
+        start_time = time.time()
+
+        best_parameters = None
+        best_tour_length = float('inf')
+
+        param_combinations = list(itertools.product(*parameter_values.values()))
+        np.random.shuffle(param_combinations)
+
+        if log is True:
+            print('Tuning ACO parameters...')
+        for i, params in enumerate(param_combinations):
+            if i is num_trials:
+                break
+            if log is True:
+                print(f'Iteration {i + 1} of {num_trials}')
+
+            kwargs = {param_name: param_value for param_name, param_value in zip(parameter_values.keys(), params)}
+            if log is True:
+                print(f'trying {kwargs}')
+            _, performance = self.run_aco(**kwargs)
+
+            if performance < best_tour_length:
+                best_tour_length = performance
+                best_parameters = kwargs
+
+        end_time = time.time()
+        if log is True:
+            print('Tuning completed')
+            print(f'tuning time: {end_time - start_time}s')
+            print(f'best parameters: {best_parameters}')
+        return best_parameters, best_tour_length
 
     def calculate_lower_bound(self):
         points = self.cities
