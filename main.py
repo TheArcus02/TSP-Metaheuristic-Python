@@ -16,13 +16,13 @@ if __name__ == '__main__':
 
     # Prepere the ACO
     parameter_values = {
-        'num_ants': list(np.arange(10, 110, 10)),
+        'num_ants': np.arange(10, 110, 10),
         'num_iterations': [100],
-        'alpha': list(np.arange(1, 6, 0.5)),
-        'beta': list(np.arange(1, 6, 0.5)),
-        'rho': list(np.arange(0.1, 0.6, 0.1))
+        'alpha': np.arange(1, 6, 0.5),
+        'beta': np.arange(1, 6, 0.5),
+        'rho': np.arange(0.1, 0.6, 0.1)
     }
-    best_params, best_len = tsp.tune_aco_parameters(parameter_values, 10, log=True)
+    best_params, best_len, best_tour = tsp.tune_aco_parameters(parameter_values, 10, log=True)
 
     # Greedy
     tsp.run_greedy()

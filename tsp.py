@@ -1,3 +1,4 @@
+import concurrent.futures
 import itertools
 import time
 from typing import List, Tuple, Dict
@@ -69,9 +70,10 @@ class TSP:
         return tour, tour_len
 
     def tune_aco_parameters(self, parameter_values: Dict[str, List], num_trials: int, log=False):
-        start_time = time.time()
+        start_time = time.perf_counter()
 
         best_parameters = None
+        best_tour = None
         best_tour_length = float('inf')
 
         param_combinations = list(itertools.product(*parameter_values.values()))
@@ -79,27 +81,37 @@ class TSP:
 
         if log is True:
             print('Tuning ACO parameters...')
-        for i, params in enumerate(param_combinations):
-            if i is num_trials:
-                break
-            if log is True:
-                print(f'Iteration {i + 1} of {num_trials}')
 
-            kwargs = {param_name: param_value for param_name, param_value in zip(parameter_values.keys(), params)}
-            if log is True:
-                print(f'trying {kwargs}')
-            _, performance = self.run_aco(**kwargs)
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = []
+            for i, params in enumerate(param_combinations):
+                if i == num_trials:
+                    break
 
-            if performance < best_tour_length:
-                best_tour_length = performance
-                best_parameters = kwargs
+                kwargs = {param_name: param_value for param_name, param_value in zip(parameter_values.keys(), params)}
+                if log is True:
+                    print(f'Trial {i + 1} of {num_trials}, trying: {kwargs}')
 
-        end_time = time.time()
+                future = executor.submit(self.run_aco, **kwargs)
+                futures.append((future, kwargs, i + 1))
+
+            for future, kwargs, trial_id in futures:
+                tour, tour_len = future.result()
+
+                if log is True:
+                    print(f'Trial {trial_id} finished, result: {tour_len}')
+
+                if tour_len < best_tour_length:
+                    best_tour = tour
+                    best_tour_length = tour_len
+                    best_parameters = kwargs
+
+        end_time = time.perf_counter()
         if log is True:
             print('Tuning completed')
-            print(f'tuning time: {end_time - start_time}s')
+            print(f'tuning time: {round(end_time - start_time, 2)}s')
             print(f'best parameters: {best_parameters}')
-        return best_parameters, best_tour_length
+        return best_parameters, best_tour_length, best_tour
 
     def calculate_lower_bound(self):
         points = self.cities
