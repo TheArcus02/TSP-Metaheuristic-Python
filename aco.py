@@ -1,3 +1,4 @@
+import time
 from typing import List, Tuple
 
 import numpy as np
@@ -17,13 +18,19 @@ class ACO:
         self.rho = rho
         self.pheromones = np.ones((self.num_cities, self.num_cities)) / self.num_cities
 
-    def run(self) -> Tuple[list, float]:
+    def run(self, max_time=3 * 60) -> Tuple[list, float]:
         # Initialize best tour and best tour length
         best_tour = None
         best_tour_length = float('inf')
+        start_time = time.perf_counter()
 
-        # # Run ACO for a given number of iterations
+        # Run ACO for a given number of iterations
         for _ in range(self.num_iterations):
+
+            if time.perf_counter() - start_time > max_time:
+                print("Time limit exceeded. Stopping the algorithm")
+                break
+
             # Create ant instances
             ants = [Ant(self.cities, self.pheromones, self.alpha, self.beta) for _ in range(self.num_ants)]
 

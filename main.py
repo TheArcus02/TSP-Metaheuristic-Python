@@ -4,7 +4,7 @@ from instance import Instance
 from tsp import TSP
 
 if __name__ == '__main__':
-    file_path = 'data/berlin52.txt'
+    file_path = 'data/tsp1000.txt'
 
     instance = Instance()
     instance.get_from_file(file_path)
@@ -22,7 +22,7 @@ if __name__ == '__main__':
         'beta': np.arange(1, 6, 0.5),
         'rho': np.arange(0.1, 0.6, 0.1)
     }
-    best_params, best_len, best_tour = tsp.tune_aco_parameters(parameter_values, 10, log=True)
+    best_params, best_len, best_tour = tsp.tune_aco_parameters(parameter_values, 500, log=True)
 
     # Greedy
     tsp.run_greedy()
