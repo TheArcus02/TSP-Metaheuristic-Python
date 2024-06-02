@@ -53,7 +53,8 @@ class TSP:
 
         return tour, total_distance
 
-    def run_aco(self, num_ants: int, num_iterations: int, alpha: float, beta: float, rho: float):
+    def run_aco(self, num_ants: int, num_iterations: int, alpha: float, beta: float, rho: float,
+                use_multiprocessing=False, verbose=False):
         self.last_used_algorithm = 'ACO'
         aco = ACO(
             cities=self.cities,
@@ -63,13 +64,14 @@ class TSP:
             beta=beta,
             rho=rho
         )
-        tour, tour_len = aco.run()
+        tour, tour_len = aco.run(use_multiprocessing=use_multiprocessing, verbose=verbose)
         self.tour = tour
         self.distance = tour_len
 
         return tour, tour_len
 
-    def tune_aco_parameters(self, parameter_values: Dict[str, List], num_trials: int, log=False):
+    def tune_aco_parameters(self, parameter_values: Dict[str, List], num_trials: int, aco_multiprocessing=False,
+                            verbose=False):
         start_time = time.perf_counter()
 
         best_parameters = None
@@ -79,7 +81,7 @@ class TSP:
         param_combinations = list(itertools.product(*parameter_values.values()))
         np.random.shuffle(param_combinations)
 
-        if log is True:
+        if verbose is True:
             print('Tuning ACO parameters...')
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -89,7 +91,8 @@ class TSP:
                     break
 
                 kwargs = {param_name: param_value for param_name, param_value in zip(parameter_values.keys(), params)}
-                if log is True:
+                kwargs['use_multiprocessing'] = aco_multiprocessing
+                if verbose is True:
                     print(f'Trial {i + 1} of {num_trials}, trying: {kwargs}')
 
                 future = executor.submit(self.run_aco, **kwargs)
@@ -98,7 +101,7 @@ class TSP:
             for future, kwargs, trial_id in futures:
                 tour, tour_len = future.result()
 
-                if log is True:
+                if verbose is True:
                     print(f'Trial {trial_id} finished, result: {tour_len}')
 
                 if tour_len < best_tour_length:
@@ -107,7 +110,7 @@ class TSP:
                     best_parameters = kwargs
 
         end_time = time.perf_counter()
-        if log is True:
+        if verbose is True:
             print('Tuning completed')
             print(f'tuning time: {round(end_time - start_time, 2)}s')
             print(f'best parameters: {best_parameters}')

@@ -2,15 +2,15 @@ from typing import List, Tuple, Set, Dict
 
 import numpy as np
 
-from utils import calculate_distance
-
 
 class Ant:
-    def __init__(self, cities: List[Tuple[int, int]], pheromones: np.ndarray, alpha: float, beta: float):
+    def __init__(self, cities: List[Tuple[int, int]], pheromones: np.ndarray, alpha: float, beta: float,
+                 distances: np.ndarray):
         self.cities = cities
         self.pheromones = pheromones
         self.alpha = alpha
         self.beta = beta
+        self.distances = distances
         self.tour = []
         self.tour_length = 0
 
@@ -31,7 +31,7 @@ class Ant:
         self.tour.append(self.tour[0])
 
         # Calculate the length of the tour
-        self.calculate_tour_length()
+        self._calculate_tour_length()
 
     def _choose_next_city(self, current_city: int, visited: Set[int]) -> int:
         # Compute probabilities for choosing the next city
@@ -57,14 +57,11 @@ class Ant:
         return probabilities
 
     def _calculate_desirability(self, pheromone: float, current_city: int, next_city: int) -> float:
-        distance = calculate_distance(self.cities[current_city], self.cities[next_city])
+        distance = self.distances[current_city, next_city]
         return (pheromone ** self.alpha) * (1.0 / distance) ** self.beta
 
-    def calculate_tour_length(self) -> None:
+    def _calculate_tour_length(self) -> None:
         total_distance = 0
         for i in range(len(self.tour) - 1):
-            city1 = self.cities[self.tour[i]]
-            city2 = self.cities[self.tour[i + 1]]
-            total_distance += calculate_distance(city1, city2)
-
+            total_distance += self.distances[self.tour[i], self.tour[i + 1]]
         self.tour_length = total_distance

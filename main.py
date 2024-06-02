@@ -1,10 +1,12 @@
+import time
+
 import numpy as np
 
 from instance import Instance
 from tsp import TSP
 
 if __name__ == '__main__':
-    file_path = 'data/tsp1000.txt'
+    file_path = 'data/tsp250.txt'
 
     instance = Instance()
     instance.get_from_file(file_path)
@@ -16,37 +18,37 @@ if __name__ == '__main__':
 
     # Prepere the ACO
     parameter_values = {
-        'num_ants': np.arange(10, 110, 10),
-        'num_iterations': [100],
-        'alpha': np.arange(1, 6, 0.5),
-        'beta': np.arange(1, 6, 0.5),
-        'rho': np.arange(0.1, 0.6, 0.1)
+        'num_ants': np.arange(200, 300, 20),
+        'num_iterations': [200, 400, 600],
+        'alpha': np.arange(1, 4, 0.5),
+        'beta': np.arange(2, 5, 0.5),
+        'rho': np.arange(0.1, 0.4, 0.1)
     }
-    best_params, best_len, best_tour = tsp.tune_aco_parameters(parameter_values, 500, log=True)
+
+    # best_params, best_len, best_tour = tsp.tune_aco_parameters(parameter_values, 20, verbose=True,
+    #                                                            aco_multiprocessing=True)
 
     # Greedy
-    tsp.run_greedy()
-    print('-----------------------------------------')
-    print('Results for Greedy algorithm:')
-    print(tsp)
-    tsp.plot_solution()
+    # tsp.run_greedy()
+    # print('-----------------------------------------')
+    # print('Results for Greedy algorithm:')
+    # print(tsp)
+    # tsp.plot_solution()
 
     # ACO
+    start_time = time.perf_counter()
     tsp.run_aco(
-        num_ants=best_params['num_ants'],
-        num_iterations=best_params['num_iterations'],
-        alpha=best_params['alpha'],
-        beta=best_params['beta'],
-        rho=best_params['rho'],
+        num_ants=240,
+        num_iterations=200,
+        alpha=2.0,
+        beta=3.0,
+        rho=0.4,
+        use_multiprocessing=True,
+        verbose=True
     )
-    # tsp.run_aco(
-    #     num_ants=1,
-    #     num_iterations=1,
-    #     alpha=2,
-    #     beta=2,
-    #     rho=0.1,
-    # )
+    end_time = time.perf_counter()
     print('-----------------------------------------')
+    print(f'Full runtime: {end_time - start_time}')
     print('Results for ACO algorithm:')
     print(tsp)
     tsp.plot_solution()
