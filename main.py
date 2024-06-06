@@ -6,7 +6,7 @@ from instance import Instance
 from tsp import TSP
 
 if __name__ == '__main__':
-    file_path = 'data/tsp250.txt'
+    file_path = 'data/berlin52.txt'
 
     instance = Instance()
     instance.get_from_file(file_path)
@@ -29,20 +29,20 @@ if __name__ == '__main__':
     #                                                            aco_multiprocessing=True)
 
     # Greedy
-    # tsp.run_greedy()
-    # print('-----------------------------------------')
-    # print('Results for Greedy algorithm:')
-    # print(tsp)
-    # tsp.plot_solution()
+    tsp.run_greedy()
+    print('-----------------------------------------')
+    print('Results for Greedy algorithm:')
+    print(tsp)
+    tsp.plot_solution()
 
     # ACO
     start_time = time.perf_counter()
     tsp.run_aco(
-        num_ants=240,
-        num_iterations=200,
-        alpha=2.0,
-        beta=3.0,
-        rho=0.4,
+        num_ants=23,
+        num_iterations=1000,
+        alpha=1.03,
+        beta=3.5,
+        rho=0.12,
         use_multiprocessing=True,
         verbose=True
     )

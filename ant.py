@@ -5,18 +5,19 @@ import numpy as np
 
 class Ant:
     def __init__(self, cities: List[Tuple[int, int]], pheromones: np.ndarray, alpha: float, beta: float,
-                 distances: np.ndarray):
+                 distances: np.ndarray, key: int):
         self.cities = cities
         self.pheromones = pheromones
         self.alpha = alpha
         self.beta = beta
         self.distances = distances
         self.tour = []
-        self.tour_length = 0
+        self.tour_length = float('inf')
+        self.key = key
 
     def construct_tour(self) -> None:
         num_cities = len(self.cities)
-        current_city = np.random.randint(num_cities)  # Start from a random city
+        current_city = self.key % num_cities  # Start from a random city
         self.tour.append(current_city)
         visited = {current_city}
 
@@ -30,8 +31,9 @@ class Ant:
         # Add path from last city to first
         self.tour.append(self.tour[0])
 
-        # Calculate the length of the tour
-        self._calculate_tour_length()
+        # Apply two opt
+        # self.tour = self._two_opt(self.tour)
+        self.tour_length = self._calculate_tour_length(self.tour)
 
     def _choose_next_city(self, current_city: int, visited: Set[int]) -> int:
         # Compute probabilities for choosing the next city
@@ -60,8 +62,29 @@ class Ant:
         distance = self.distances[current_city, next_city]
         return (pheromone ** self.alpha) * (1.0 / distance) ** self.beta
 
-    def _calculate_tour_length(self) -> None:
+    def _calculate_tour_length(self, tour) -> int:
         total_distance = 0
-        for i in range(len(self.tour) - 1):
-            total_distance += self.distances[self.tour[i], self.tour[i + 1]]
-        self.tour_length = total_distance
+        for i in range(len(tour) - 1):
+            total_distance += self.distances[tour[i], tour[i + 1]]
+        return total_distance
+
+    def two_opt(self, check_if_time_limit_exceeded):
+        print('Applying two-opt')
+        n = len(self.tour)
+        improved = True
+
+        while improved:
+            improved = False
+            for i in range(1, n - 2):
+                for j in range(i + 1, n):
+                    if check_if_time_limit_exceeded():
+                        return
+                    if j - i == 1:
+                        continue
+                    new_tour = self.tour[:]
+                    new_tour[i:j] = reversed(self.tour[i:j])
+                    new_distance = self._calculate_tour_length(new_tour)
+                    if new_distance < self.tour_length:
+                        self.tour = new_tour
+                        self.tour_length = new_distance
+                        improved = True

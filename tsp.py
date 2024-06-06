@@ -62,9 +62,11 @@ class TSP:
             num_iterations=num_iterations,
             alpha=alpha,
             beta=beta,
-            rho=rho
+            rho=rho,
+            max_time=180,
+            verbose=verbose
         )
-        tour, tour_len = aco.run(use_multiprocessing=use_multiprocessing, verbose=verbose)
+        tour, tour_len = aco.run(use_multiprocessing=use_multiprocessing)
         self.tour = tour
         self.distance = tour_len
 
