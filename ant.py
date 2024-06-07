@@ -53,13 +53,19 @@ class Ant:
                 total += desirability
                 probabilities[city] = desirability
 
-        for city in probabilities:
-            probabilities[city] /= total
+        if total == 0:
+            for city in probabilities:
+                probabilities[city] = 1 / len(probabilities)
+        else:
+            for city in probabilities:
+                probabilities[city] /= total
 
         return probabilities
 
     def _calculate_desirability(self, pheromone: float, current_city: int, next_city: int) -> float:
         distance = self.distances[current_city, next_city]
+        if distance == 0:
+            return 0.0
         return (pheromone ** self.alpha) * (1.0 / distance) ** self.beta
 
     def _calculate_tour_length(self, tour) -> int:
@@ -69,7 +75,6 @@ class Ant:
         return total_distance
 
     def two_opt(self, check_if_time_limit_exceeded):
-        print('Applying two-opt')
         n = len(self.tour)
         improved = True
 

@@ -54,7 +54,7 @@ class TSP:
         return tour, total_distance
 
     def run_aco(self, num_ants: int, num_iterations: int, alpha: float, beta: float, rho: float,
-                use_multiprocessing=False, verbose=False):
+                use_multiprocessing=False, verbose=False, max_time=3 * 60, optimum=None):
         self.last_used_algorithm = 'ACO'
         aco = ACO(
             cities=self.cities,
@@ -63,7 +63,8 @@ class TSP:
             alpha=alpha,
             beta=beta,
             rho=rho,
-            max_time=180,
+            max_time=max_time,
+            optimum=optimum,
             verbose=verbose
         )
         tour, tour_len = aco.run(use_multiprocessing=use_multiprocessing)

@@ -2,6 +2,7 @@ import time
 from multiprocessing import Pool
 from typing import List, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from ant import Ant
@@ -10,7 +11,8 @@ from utils import calculate_distance
 
 class ACO:
     def __init__(self, cities: List[Tuple[int, int]], num_ants: int,
-                 num_iterations: int, alpha: float, beta: float, rho: float, max_time: int, verbose: bool = False):
+                 num_iterations: int, alpha: float, beta: float, rho: float,
+                 max_time: int, optimum: int = None, verbose: bool = False):
         self.cities = cities
         self.num_cities = len(cities)
         self.num_ants = num_ants
@@ -20,9 +22,10 @@ class ACO:
         self.rho = rho
         self.pheromones = self._calculate_initial_pheromones()
         self.distances = self._calculate_distance_matrix()
+        self.optimum = optimum
         self.verbose = verbose
 
-        self.best_tours_lengths = []
+        self.best_tour_lengths = []
         self.start_time = None
         self.max_time = max_time
 
@@ -55,6 +58,9 @@ class ACO:
             with Pool(processes=num_processes) as pool:
                 new_best_tour = self._process_batches(pool, batch_sizes)
 
+                if self._check_if_optimum_found():
+                    break
+
             stagnation_count, reset_counter = self._update_stagnation_and_reset(
                 new_best_tour, stagnation_count, stagnation_threshold, reset_counter, reset_threshold)
 
@@ -62,9 +68,18 @@ class ACO:
                 print(
                     f"Iteration {iteration + 1}/{self.num_iterations}: Best tour length so far is {self.best_tour_length},"
                     f" took: {time.perf_counter() - iteration_start_time}")
-            iteration += 1
 
+            self.best_tour_lengths.append(self.best_tour_length)
+
+            iteration += 1
         return self.best_tour, self.best_tour_length
+
+    def _check_if_optimum_found(self):
+        if self.optimum and int(self.best_tour_length) == self.optimum:
+            if self.verbose:
+                print(f"Optimum {int(self.best_tour_length)} found")
+            return True
+        return False
 
     def _init_multiprocessing(self) -> Tuple[int, list]:
         num_processes = min(self.num_ants, Pool()._processes)
@@ -89,6 +104,8 @@ class ACO:
                         self.best_tour_length = ant.tour_length
                         self.best_tour = ant.tour
                         new_best_tour = True
+                    if self._check_if_optimum_found():
+                        break
 
         return new_best_tour
 
@@ -162,3 +179,44 @@ class ACO:
 
     def _calculate_initial_pheromones(self) -> np.ndarray:
         return np.ones((self.num_cities, self.num_cities)) * 3
+
+    def plot_best_tour_lengths(self) -> None:
+        if not self.best_tour_lengths:
+            print("No tour lengths to plot.")
+            return
+
+        iterations = range(1, len(self.best_tour_lengths) + 1)
+        plt.figure(figsize=(10, 6))
+        plt.plot(iterations, self.best_tour_lengths, marker='o', linestyle='-', color='b')
+        plt.title('Best Tour Lengths Over Iterations')
+        plt.xlabel('Iteration')
+        plt.ylabel('Best Tour Length')
+        plt.grid(True)
+        plt.show()
+
+    def _plot_tour(self, title: str) -> None:
+        points = self.cities
+        tour = self.best_tour
+
+        x = [point[0] for point in points]
+        y = [point[1] for point in points]
+
+        # Plot cities
+        plt.figure(figsize=(8, 6))
+        plt.scatter(x, y, color='blue')
+
+        # Plot tour
+        for i in range(len(tour) - 1):
+            city1 = tour[i]
+            city2 = tour[i + 1]
+
+            plt.plot([points[city1][0], points[city2][0]], [points[city1][1], points[city2][1]], color='red')
+
+        # Connect last city to the starting city
+        plt.plot([points[tour[-1]][0], points[tour[0]][0]], [points[tour[-1]][1], points[tour[0]][1]], color='red')
+
+        plt.title(title)
+        plt.xlabel('X Coordinate')
+        plt.ylabel('Y Coordinate')
+        plt.grid(True)
+        plt.show()
