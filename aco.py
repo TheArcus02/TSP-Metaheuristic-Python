@@ -36,11 +36,66 @@ class ACO:
     def _init_start_time(self):
         self.start_time = time.perf_counter()
 
-    def run(self, max_time=10, use_multiprocessing=False) -> Tuple[List, float]:
+    def run(self, use_multiprocessing=False) -> Tuple[List, float]:
         self._init_start_time()
         if use_multiprocessing:
             return self._run_with_multiprocessing()
-        return self._run_sequential(max_time)
+        return self._run_sequential()
+
+    def _run_sequential(self) -> Tuple[List, float]:
+        stagnation_count = 0
+        stagnation_threshold = 6
+        reset_counter = 0
+        reset_threshold = 15
+
+        iteration = 0
+        while iteration < self.num_iterations and time.perf_counter() - self.start_time < self.max_time:
+            iteration_start_time = time.perf_counter()
+            new_best_tour = False
+
+            ants = [Ant(self.cities, self.pheromones, self.alpha, self.beta, self.distances, i) for i in
+                    range(self.num_ants)]
+            local_best_tour = None
+
+            for ant in ants:
+                if self._check_if_time_limit_exceeded():
+                    return self.best_tour, self.best_tour_length
+
+                ant.construct_tour()
+                if ((ant.tour_length < self.best_tour_length or self.intensified_search)
+                        and (local_best_tour is None or ant.tour_length < local_best_tour)):
+                    ant.two_opt(self._check_if_time_limit_exceeded)
+
+                    if local_best_tour is None or ant.tour_length < local_best_tour:
+                        local_best_tour = ant.tour_length
+
+                    if ant.tour_length < self.best_tour_length:
+                        if self.intensified_search:
+                            self.intensified_search = False
+                        self.best_tour_length = ant.tour_length
+                        self.best_tour = ant.tour
+                        new_best_tour = True
+
+                self._update_pheromones(ant, self.intensified_search)
+
+                if self.optimum and int(self.best_tour_length) <= self.optimum:
+                    if self.verbose:
+                        print(f"Optimum {int(self.best_tour_length)} found")
+                    self.best_tour_lengths.append(self.best_tour_length)
+                    return self.best_tour, self.best_tour_length
+
+            stagnation_count, reset_counter = self._update_stagnation_and_reset(
+                new_best_tour, stagnation_count, stagnation_threshold, reset_counter, reset_threshold)
+
+            if self.verbose:
+                print(
+                    f"Iteration {iteration + 1}/{self.num_iterations}: Best tour length so far is {self.best_tour_length},"
+                    f" took: {time.perf_counter() - iteration_start_time}")
+
+            self.best_tour_lengths.append(self.best_tour_length)
+
+            iteration += 1
+        return self.best_tour, self.best_tour_length
 
     def _run_with_multiprocessing(self):
         stagnation_count = 0
@@ -149,7 +204,7 @@ class ACO:
 
     def _check_if_time_limit_exceeded(self):
         if time.perf_counter() - self.start_time > self.max_time:
-            print('Time limit exceeded during batch processing. Stopping the algorithm')
+            print('Time limit exceeded. Stopping the algorithm')
             return True
         return False
 

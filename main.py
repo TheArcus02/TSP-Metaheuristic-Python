@@ -150,7 +150,7 @@ def run_benchmark_instances():
     plt.show()
 
 
-def run_single_instance_from_file(file_path: str, compare_to_greedy: bool = True):
+def run_single_instance_from_file(file_path: str, compare_to_greedy: bool = True, use_multiprocessing: bool = True):
     instance = Instance()
 
     instance.get_from_file(file_path)
@@ -163,19 +163,19 @@ def run_single_instance_from_file(file_path: str, compare_to_greedy: bool = True
         print('Results for Greedy algorithm:')
         print(tsp)
         tsp.plot_solution()
-
+    print(instance.filename)
     # ACO
     start_time = time.perf_counter()
     tsp.run_aco(
         num_ants=24,
-        num_iterations=20,
+        num_iterations=1000,
         alpha=1.03,
         beta=3.5,
         rho=0.12,
-        use_multiprocessing=True,
+        use_multiprocessing=use_multiprocessing,
         verbose=True,
         max_time=60,
-        optimum=optimal_results[instance.filename]
+        optimum=optimal_results[instance.filename] if instance.filename in optimal_results.keys() else None
     )
     end_time = time.perf_counter()
     print('-----------------------------------------')
@@ -208,7 +208,7 @@ def run_all_ranking_instances():
             use_multiprocessing=True,
             verbose=False,
             max_time=3 * 60 if instance_name != 'tsp1000' else 5 * 60,
-            optimum=optimal_results[instance_name]
+            optimum=optimal_results[instance.filename] if instance.filename in optimal_results.keys() else None
         )
 
         tsp.plot_solution()
@@ -221,7 +221,7 @@ def run_all_ranking_instances():
             print(f'The tour is: {best_tour}')
 
 
-def run_single_instance(num_cities: int, compare_to_greedy: bool = True):
+def run_single_instance(num_cities: int, compare_to_greedy: bool = True, use_multiprocessing: bool = True):
     instance = Instance()
 
     instance.generate_cities(num_cities, 0, 1000)
@@ -239,14 +239,13 @@ def run_single_instance(num_cities: int, compare_to_greedy: bool = True):
     start_time = time.perf_counter()
     tsp.run_aco(
         num_ants=24,
-        num_iterations=20,
+        num_iterations=1000,
         alpha=1.03,
         beta=3.5,
         rho=0.12,
-        use_multiprocessing=True,
+        use_multiprocessing=use_multiprocessing,
         verbose=True,
         max_time=60,
-        optimum=7544
     )
     end_time = time.perf_counter()
     print('-----------------------------------------')
@@ -273,10 +272,10 @@ if __name__ == '__main__':
 
     # run_single_instance(num_cities=60)
 
-    # run_single_instance_from_file(file_path='data/ranking/berlin52.txt',
-    #                               compare_to_greedy=True)
+    run_single_instance_from_file(file_path='data/ranking/berlin52.txt', compare_to_greedy=False,
+                                  use_multiprocessing=False)
 
-    run_all_ranking_instances()
+    # run_all_ranking_instances()
 
     # GridSearch Tuning
     # parameter_values = {
